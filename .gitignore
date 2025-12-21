@@ -3,6 +3,13 @@
 *.h5
 *.joblib
 *.model
+*.keras
+
+# Technical analysis model artifacts
+technical analysis/*.pkl
+technical analysis/ensemble_models/
+technical analysis/model_*.csv
+technical analysis/backtest_results.csv
 
 # Python cache
 __pycache__/
@@ -36,3 +43,5 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+
+
