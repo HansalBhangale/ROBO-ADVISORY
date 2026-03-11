@@ -1,0 +1,29 @@
+{
+  "tag": "random_forest",
+  "val_ic": 0.08532889291647865,
+  "feature_cols": [
+    "rev_to_assets",
+    "ni_to_assets",
+    "eq_to_assets",
+    "ocf_to_assets",
+    "ltd_to_assets",
+    "rev_growth_1y",
+    "rev_growth_2y",
+    "gross_margin",
+    "op_margin",
+    "net_margin",
+    "roe",
+    "roa",
+    "fcf_to_assets",
+    "accruals",
+    "debt_to_equity",
+    "interest_cover",
+    "rd_to_rev",
+    "log_rev_growth_1y",
+    "log_rev_growth_2y",
+    "log_debt_to_equity"
+  ],
+  "buy_threshold": 65,
+  "sell_threshold": 35,
+  "saved_at": "2026-03-10T21:03:02.403525"
+}

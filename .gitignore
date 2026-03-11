@@ -11,6 +11,7 @@ technical analysis/ensemble_models/
 technical analysis/model_*.csv
 technical analysis/backtest_results.csv
 
+fundamental analysis/data
 # Python cache
 __pycache__/
 *.py[cod]
@@ -43,5 +44,7 @@ Thumbs.db
 # Environment variables
 .env
 .env.local
+
+cache
 
 
