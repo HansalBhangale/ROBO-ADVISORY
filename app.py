@@ -101,116 +101,467 @@ st.set_page_config(
 )
 
 # ============================================================================
-# CUSTOM CSS
+# CUSTOM CSS — PREMIUM FINANCE THEME
 # ============================================================================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
-    /* Global */
-    .stApp { font-family: 'Inter', sans-serif; }
+    /* ===== KEYFRAME ANIMATIONS ===== */
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes pulseGlow {
+        0%, 100% { box-shadow: 0 0 15px rgba(56,239,125,0.15), 0 4px 20px rgba(0,0,0,0.3); }
+        50% { box-shadow: 0 0 30px rgba(56,239,125,0.25), 0 8px 30px rgba(0,0,0,0.4); }
+    }
+    @keyframes fadeSlideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes borderGlow {
+        0%, 100% { border-color: rgba(102,126,234,0.3); }
+        50% { border-color: rgba(240,147,251,0.5); }
+    }
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+    @keyframes tickerScroll {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+    }
+    @keyframes scaleIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes countUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes lineSweep {
+        0% { width: 0; }
+        100% { width: 100%; }
+    }
 
-    /* Header */
+    /* ===== GLOBAL ===== */
+    .stApp {
+        font-family: 'Inter', sans-serif;
+        background: #0a0a1a;
+    }
+
+    /* ===== ANIMATED HEADER ===== */
     .main-header {
-        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-        padding: 2rem 2.5rem;
-        border-radius: 16px;
+        background: linear-gradient(-45deg, #0f0c29, #1a0533, #302b63, #0f2027, #203a43);
+        background-size: 400% 400%;
+        animation: gradientShift 12s ease infinite;
+        padding: 2.5rem 3rem;
+        border-radius: 20px;
         margin-bottom: 1.5rem;
         color: white;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.05);
+        position: relative;
+        overflow: hidden;
+    }
+    .main-header::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: radial-gradient(circle at 20% 50%, rgba(102,126,234,0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(240,147,251,0.06) 0%, transparent 40%),
+                    radial-gradient(circle at 50% 80%, rgba(56,239,125,0.04) 0%, transparent 40%);
+        pointer-events: none;
     }
     .main-header h1 {
-        font-size: 2.2rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #F7971E, #FFD200);
+        font-size: 2.5rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #F7971E 0%, #FFD200 40%, #38ef7d 100%);
+        background-size: 200% auto;
+        animation: gradientShift 4s ease infinite;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         margin: 0;
+        letter-spacing: -0.5px;
     }
-    .main-header p { color: #a0aec0; font-size: 1rem; margin-top: 0.3rem; }
+    .main-header p {
+        color: rgba(160,174,192,0.9);
+        font-size: 1rem;
+        margin-top: 0.4rem;
+        letter-spacing: 0.5px;
+    }
+    .main-header .subtitle-line {
+        height: 2px;
+        background: linear-gradient(90deg, #667eea, #f093fb, #38ef7d);
+        border-radius: 2px;
+        margin-top: 1rem;
+        animation: lineSweep 2s ease-out forwards, gradientShift 3s ease infinite;
+        background-size: 200% auto;
+    }
 
-    /* Step cards */
+    /* ===== STOCK TICKER MARQUEE ===== */
+    .ticker-wrap {
+        overflow: hidden;
+        background: rgba(255,255,255,0.03);
+        border-radius: 12px;
+        padding: 10px 0;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .ticker-content {
+        display: inline-flex;
+        animation: tickerScroll 30s linear infinite;
+        gap: 2rem;
+        white-space: nowrap;
+    }
+    .ticker-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+        color: #a0aec0;
+    }
+    .ticker-item .tick-name { color: #fff; font-weight: 600; }
+    .ticker-item .tick-up { color: #38ef7d; }
+    .ticker-item .tick-down { color: #ff6b6b; }
+
+    /* ===== GLASSMORPHISM CARDS ===== */
     .step-card {
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        background: rgba(22, 33, 62, 0.6);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 14px;
-        padding: 1.5rem;
+        border-radius: 18px;
+        padding: 1.8rem;
         margin-bottom: 1rem;
         color: white;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        animation: fadeSlideUp 0.6s ease-out;
+    }
+    .step-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 48px rgba(102,126,234,0.15);
+        border-color: rgba(102,126,234,0.3);
     }
     .step-card h3 {
-        color: #FFD200;
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-
-    /* Metric cards */
-    .metric-card {
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        border-radius: 14px;
-        padding: 1.2rem;
-        text-align: center;
-        color: white;
-        border: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .metric-card .value {
-        font-size: 2rem;
-        font-weight: 800;
-        background: linear-gradient(90deg, #11998e, #38ef7d);
+        background: linear-gradient(135deg, #FFD200, #F7971E);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        font-size: 1.15rem;
+        font-weight: 800;
+        margin-bottom: 0.6rem;
     }
-    .metric-card .label { color: #a0aec0; font-size: 0.85rem; margin-top: 0.3rem; }
 
-    /* Risk gauge colors */
-    .risk-conservative { color: #38ef7d; }
-    .risk-moderate { color: #FFD200; }
-    .risk-aggressive { color: #ff6b6b; }
+    /* ===== METRIC CARDS WITH GLOW ===== */
+    .metric-card {
+        background: linear-gradient(145deg, rgba(15,32,39,0.9), rgba(32,58,67,0.9), rgba(44,83,100,0.8));
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.4rem 1rem;
+        text-align: center;
+        color: white;
+        border: 1px solid rgba(56,239,125,0.15);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+        animation: scaleIn 0.5s ease-out, pulseGlow 3s ease-in-out infinite;
+        position: relative;
+        overflow: hidden;
+    }
+    .metric-card::after {
+        content: '';
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+        animation: shimmer 3s infinite;
+    }
+    .metric-card:hover {
+        transform: translateY(-3px) scale(1.02);
+        border-color: rgba(56,239,125,0.4);
+        box-shadow: 0 8px 30px rgba(56,239,125,0.2);
+    }
+    .metric-card .value {
+        font-size: 2.2rem;
+        font-weight: 900;
+        font-family: 'JetBrains Mono', monospace;
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: countUp 0.8s ease-out;
+    }
+    .metric-card .label {
+        color: rgba(160,174,192,0.8);
+        font-size: 0.8rem;
+        margin-top: 0.4rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
 
-    /* Signal badges */
-    .signal-buy { background: #38ef7d22; color: #38ef7d; padding: 2px 10px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; }
-    .signal-sell { background: #ff6b6b22; color: #ff6b6b; padding: 2px 10px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; }
-    .signal-hold { background: #FFD20022; color: #FFD200; padding: 2px 10px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; }
-
-    /* Progress steps */
+    /* ===== WORKFLOW PIPELINE ===== */
     .workflow-step {
-        display: inline-block;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1.2rem;
+        border-radius: 25px;
         margin: 0.2rem;
-        font-size: 0.85rem;
-        font-weight: 600;
+        font-size: 0.82rem;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        letter-spacing: 0.3px;
     }
-    .step-active { background: #FFD200; color: #1a1a2e; }
-    .step-done { background: #38ef7d33; color: #38ef7d; border: 1px solid #38ef7d; }
-    .step-pending { background: #ffffff11; color: #666; border: 1px solid #333; }
+    .step-active {
+        background: linear-gradient(135deg, #FFD200, #F7971E);
+        color: #1a1a2e;
+        box-shadow: 0 4px 15px rgba(255,210,0,0.3);
+    }
+    .step-done {
+        background: rgba(56,239,125,0.15);
+        color: #38ef7d;
+        border: 1px solid rgba(56,239,125,0.4);
+    }
+    .step-pending {
+        background: rgba(255,255,255,0.04);
+        color: rgba(160,174,192,0.6);
+        border: 1px solid rgba(255,255,255,0.08);
+        animation: borderGlow 3s ease-in-out infinite;
+    }
+    .step-pending:hover {
+        background: rgba(255,255,255,0.08);
+        color: #a0aec0;
+        transform: scale(1.05);
+    }
+    .step-arrow {
+        color: rgba(102,126,234,0.5);
+        font-size: 1.2rem;
+        margin: 0 0.3rem;
+        animation: float 2s ease-in-out infinite;
+    }
 
-    /* Sidebar */
+    /* ===== MODULE CARDS ===== */
+    .module-card {
+        background: rgba(22, 33, 62, 0.5);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 18px;
+        padding: 1.8rem;
+        color: white;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+    .module-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 3px;
+        border-radius: 18px 18px 0 0;
+    }
+    .module-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    }
+    .module-card.risk::before { background: linear-gradient(90deg, #667eea, #764ba2); }
+    .module-card.tech::before { background: linear-gradient(90deg, #11998e, #38ef7d); }
+    .module-card.fund::before { background: linear-gradient(90deg, #F7971E, #FFD200); }
+    .module-card:hover.risk { border-color: rgba(102,126,234,0.3); box-shadow: 0 20px 50px rgba(102,126,234,0.1); }
+    .module-card:hover.tech { border-color: rgba(56,239,125,0.3); box-shadow: 0 20px 50px rgba(56,239,125,0.1); }
+    .module-card:hover.fund { border-color: rgba(255,210,0,0.3); box-shadow: 0 20px 50px rgba(255,210,0,0.1); }
+    .module-card h3 {
+        font-size: 1.1rem;
+        font-weight: 800;
+        margin-bottom: 0.6rem;
+    }
+    .module-card.risk h3 { background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .module-card.tech h3 { background: linear-gradient(135deg, #11998e, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .module-card.fund h3 { background: linear-gradient(135deg, #F7971E, #FFD200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .module-card p { color: rgba(160,174,192,0.85); font-size: 0.9rem; line-height: 1.6; }
+    .module-card .module-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+    .module-card .module-stat {
+        display: inline-block;
+        background: rgba(255,255,255,0.06);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        color: #a0aec0;
+        margin-top: 0.8rem;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ===== SIDEBAR ===== */
     section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f0c29, #1a1a2e);
+        background: linear-gradient(180deg, #0a0a1a, #0f0c29, #1a1a2e);
+        border-right: 1px solid rgba(255,255,255,0.05);
     }
     section[data-testid="stSidebar"] .stMarkdown { color: white; }
+    section[data-testid="stSidebar"] hr {
+        border-color: rgba(102,126,234,0.2);
+    }
 
-    /* Hide streamlit branding */
+    /* ===== HIDE STREAMLIT BRANDING ===== */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    header[data-testid="stHeader"] { background: transparent; }
 
-    /* Table styling */
+    /* ===== TABLE STYLING ===== */
     .dataframe { font-size: 0.85rem; }
+
+    /* ===== SECTION HEADERS ===== */
+    .stApp h3 {
+        animation: fadeSlideUp 0.5s ease-out;
+    }
+
+    /* ===== SECTION HEADERS ===== */
+    .section-header {
+        background: rgba(22, 33, 62, 0.6);
+        backdrop-filter: blur(15px);
+        border-radius: 16px;
+        padding: 1.2rem 1.8rem;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border: 1px solid rgba(255,255,255,0.06);
+        animation: fadeSlideUp 0.6s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+    .section-header::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 4px;
+        border-radius: 16px 0 0 16px;
+    }
+    .section-header.risk::before { background: linear-gradient(180deg, #667eea, #764ba2); }
+    .section-header.analysis::before { background: linear-gradient(180deg, #11998e, #38ef7d); }
+    .section-header.portfolio::before { background: linear-gradient(180deg, #F7971E, #FFD200); }
+    .section-header.backtest::before { background: linear-gradient(180deg, #667eea, #38ef7d); }
+    .section-header .section-icon {
+        font-size: 1.8rem;
+        animation: float 3s ease-in-out infinite;
+    }
+    .section-header .section-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.3px;
+    }
+    .section-header .section-subtitle {
+        font-size: 0.8rem;
+        color: rgba(160,174,192,0.7);
+        margin-top: 2px;
+    }
+    .section-header.risk .section-title { background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .section-header.analysis .section-title { background: linear-gradient(135deg, #11998e, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .section-header.portfolio .section-title { background: linear-gradient(135deg, #F7971E, #FFD200); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .section-header.backtest .section-title { background: linear-gradient(135deg, #667eea, #38ef7d); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* ===== SECTION DIVIDERS ===== */
+    .section-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(102,126,234,0.3), rgba(240,147,251,0.2), transparent);
+        margin: 2rem 0;
+        border: none;
+    }
+
+    /* ===== ANALYSIS COLUMN HEADERS ===== */
+    .analysis-col-header {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.8rem 1.2rem;
+        background: rgba(255,255,255,0.03);
+        border-radius: 12px;
+        margin-bottom: 0.8rem;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .analysis-col-header.tech { border-left: 3px solid #38ef7d; }
+    .analysis-col-header.fund { border-left: 3px solid #FFD200; }
+    .analysis-col-header span { font-weight: 700; color: white; font-size: 0.95rem; }
+
+    /* ===== HOLDINGS HEADER ===== */
+    .holdings-title {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgba(255,210,0,0.3);
+    }
+
+    /* ===== DOWNLOAD BUTTON ===== */
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(240,147,251,0.2)) !important;
+        border: 1px solid rgba(102,126,234,0.3) !important;
+        color: white !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        transition: all 0.3s ease !important;
+    }
+    .stDownloadButton > button:hover {
+        background: linear-gradient(135deg, rgba(102,126,234,0.35), rgba(240,147,251,0.35)) !important;
+        border-color: rgba(240,147,251,0.5) !important;
+        box-shadow: 0 4px 20px rgba(102,126,234,0.2) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* ===== DISCLAIMER ===== */
+    .disclaimer {
+        background: rgba(255,107,107,0.05);
+        border: 1px solid rgba(255,107,107,0.15);
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+        color: rgba(160,174,192,0.7);
+        font-size: 0.82rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 
 # ============================================================================
-# HEADER
+# ANIMATED HEADER
 # ============================================================================
 st.markdown("""
 <div class="main-header">
     <h1>🤖 Robo-Advisory Portfolio System</h1>
-    <p>AI-Powered Investment Portfolio Generation — Risk Profiling → Analysis → Allocation</p>
+    <p>AI-Powered Investment Portfolio Generation — Powered by LSTM, Random Forest & Deep Learning</p>
+    <div class="subtitle-line"></div>
+</div>
+""", unsafe_allow_html=True)
+
+# Stock ticker marquee
+st.markdown("""
+<div class="ticker-wrap">
+    <div class="ticker-content">
+        <span class="ticker-item"><span class="tick-name">AAPL</span> <span class="tick-up">▲ 2.3%</span></span>
+        <span class="ticker-item"><span class="tick-name">MSFT</span> <span class="tick-up">▲ 1.1%</span></span>
+        <span class="ticker-item"><span class="tick-name">NVDA</span> <span class="tick-down">▼ 0.8%</span></span>
+        <span class="ticker-item"><span class="tick-name">GOOGL</span> <span class="tick-up">▲ 0.5%</span></span>
+        <span class="ticker-item"><span class="tick-name">AMZN</span> <span class="tick-up">▲ 1.7%</span></span>
+        <span class="ticker-item"><span class="tick-name">TSLA</span> <span class="tick-down">▼ 2.1%</span></span>
+        <span class="ticker-item"><span class="tick-name">META</span> <span class="tick-up">▲ 3.2%</span></span>
+        <span class="ticker-item"><span class="tick-name">JPM</span> <span class="tick-up">▲ 0.9%</span></span>
+        <span class="ticker-item"><span class="tick-name">V</span> <span class="tick-up">▲ 0.4%</span></span>
+        <span class="ticker-item"><span class="tick-name">KO</span> <span class="tick-up">▲ 0.2%</span></span>
+        <span class="ticker-item"><span class="tick-name">AMD</span> <span class="tick-down">▼ 1.5%</span></span>
+        <span class="ticker-item"><span class="tick-name">NFLX</span> <span class="tick-up">▲ 2.8%</span></span>
+        <span class="ticker-item"><span class="tick-name">AAPL</span> <span class="tick-up">▲ 2.3%</span></span>
+        <span class="ticker-item"><span class="tick-name">MSFT</span> <span class="tick-up">▲ 1.1%</span></span>
+        <span class="ticker-item"><span class="tick-name">NVDA</span> <span class="tick-down">▼ 0.8%</span></span>
+        <span class="ticker-item"><span class="tick-name">GOOGL</span> <span class="tick-up">▲ 0.5%</span></span>
+        <span class="ticker-item"><span class="tick-name">AMZN</span> <span class="tick-up">▲ 1.7%</span></span>
+        <span class="ticker-item"><span class="tick-name">TSLA</span> <span class="tick-down">▼ 2.1%</span></span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -781,7 +1132,11 @@ def run_backtest(allocations, capital, lookback_months=12):
 if generate_btn:
     # --- Step 2: Risk Score ---
     with st.container():
-        st.markdown("### 🎯 Step 2: Risk Score Prediction")
+        st.markdown("""<div class="section-header risk">
+            <span class="section-icon">🎯</span>
+            <div><div class="section-title">Step 2: Risk Score Prediction</div>
+            <div class="section-subtitle">RandomForest model analyzing your financial profile</div></div>
+        </div>""", unsafe_allow_html=True)
         with st.spinner("Calculating risk score..."):
             risk_score, risk_cat = predict_risk(user_features)
 
@@ -829,14 +1184,18 @@ if generate_btn:
         )
         st.plotly_chart(fig_gauge, use_container_width=True)
 
-    st.markdown("---")
+    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
     # --- Step 3: Stock Analysis ---
-    st.markdown("### 📊 Step 3: Stock Analysis")
+    st.markdown("""<div class="section-header analysis">
+        <span class="section-icon">📊</span>
+        <div><div class="section-title">Step 3: Stock Analysis</div>
+        <div class="section-subtitle">LSTM Ensemble + Random Forest scoring S&P 500 universe</div></div>
+    </div>""", unsafe_allow_html=True)
     col_t, col_f = st.columns(2)
 
     with col_t:
-        st.markdown("#### 📈 Technical Analysis")
+        st.markdown('<div class="analysis-col-header tech"><span>📈 Technical Analysis</span></div>', unsafe_allow_html=True)
         tech_progress = st.progress(0, "Starting technical analysis...")
         tech_status = st.empty()
 
@@ -844,7 +1203,7 @@ if generate_btn:
     tech_status.text(f"✅ Scored {len(tech_results)} stocks")
 
     with col_f:
-        st.markdown("#### 📋 Fundamental Analysis")
+        st.markdown('<div class="analysis-col-header fund"><span>📋 Fundamental Analysis</span></div>', unsafe_allow_html=True)
         fund_progress = st.progress(0, "Starting fundamental analysis...")
         fund_status = st.empty()
 
@@ -874,23 +1233,35 @@ if generate_btn:
         comb_s = [s['combined_score'] for s in combined[:15]]
 
         fig_scores.add_trace(go.Bar(name='Technical', x=tickers, y=tech_s,
-                                    marker_color='#667eea', opacity=0.8))
+                                    marker_color='#667eea', opacity=0.85,
+                                    marker_line=dict(width=0)))
         fig_scores.add_trace(go.Bar(name='Fundamental', x=tickers, y=fund_s,
-                                    marker_color='#f093fb', opacity=0.8))
+                                    marker_color='#f093fb', opacity=0.85,
+                                    marker_line=dict(width=0)))
         fig_scores.add_trace(go.Scatter(name='Combined', x=tickers, y=comb_s,
-                                        mode='lines+markers', line=dict(color='#FFD200', width=3),
-                                        marker=dict(size=8)))
+                                        mode='lines+markers',
+                                        line=dict(color='#FFD200', width=3.5, shape='spline'),
+                                        marker=dict(size=9, color='#FFD200',
+                                                   line=dict(width=2, color='#0a0a1a'))))
         fig_scores.update_layout(
-            title='Stock Scores Comparison', barmode='group', template='plotly_dark',
-            height=400, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            legend=dict(orientation='h', y=1.12), margin=dict(l=40, r=20, t=60, b=40)
+            title=dict(text='<b>Stock Scores Comparison</b>', font=dict(size=16, color='white')),
+            barmode='group', template='plotly_dark',
+            height=420, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+            legend=dict(orientation='h', y=1.12, font=dict(size=12)),
+            margin=dict(l=40, r=20, t=60, b=40),
+            yaxis=dict(gridcolor='rgba(255,255,255,0.05)', title='Score'),
+            xaxis=dict(gridcolor='rgba(255,255,255,0.03)')
         )
         st.plotly_chart(fig_scores, use_container_width=True)
 
-    st.markdown("---")
+    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
 
     # --- Step 4 & 5: Allocation & Portfolio ---
-    st.markdown("### 💼 Step 4 & 5: Portfolio Allocation")
+    st.markdown("""<div class="section-header portfolio">
+        <span class="section-icon">💼</span>
+        <div><div class="section-title">Step 4 & 5: Portfolio Allocation</div>
+        <div class="section-subtitle">Risk-aware selection with volatility filtering & concentration limits</div></div>
+    </div>""", unsafe_allow_html=True)
     portfolio = allocate_portfolio(combined, risk_score, capital)
 
     if portfolio['allocations']:
@@ -925,13 +1296,15 @@ if generate_btn:
         with col_pie:
             labels = [a['name'][:15] for a in portfolio['allocations']] + ['Cash']
             values = [a['weight_pct'] for a in portfolio['allocations']] + [portfolio['cash_pct']]
-            colors = px.colors.qualitative.Set3[:len(labels)-1] + ['#555']
+            _palette = ['#667eea','#38ef7d','#f093fb','#FFD200','#ff6b6b','#11998e','#F7971E',
+                       '#764ba2','#43e97b','#fa709a','#fee140','#30cfd0','#a18cd1']
+            colors = _palette[:len(labels)-1] + ['rgba(80,80,80,0.6)']
 
             fig_pie = go.Figure(go.Pie(
                 labels=labels, values=values, hole=0.55,
-                marker=dict(colors=colors, line=dict(color='#1a1a2e', width=2)),
+                marker=dict(colors=colors, line=dict(color='#0a0a1a', width=2)),
                 textinfo='label+percent', textposition='outside',
-                textfont=dict(size=11)
+                textfont=dict(size=11, color='rgba(200,210,220,0.9)')
             ))
             fig_pie.update_layout(
                 title='Portfolio Allocation', template='plotly_dark',
@@ -941,7 +1314,7 @@ if generate_btn:
             st.plotly_chart(fig_pie, use_container_width=True)
 
         with col_tbl:
-            st.markdown("#### Holdings")
+            st.markdown('<div class="holdings-title">📋 Holdings</div>', unsafe_allow_html=True)
             df_port = pd.DataFrame([{
                 'Stock': a['name'], 'Score': a['combined_score'],
                 'Signal': a['combined_signal'],
@@ -954,23 +1327,31 @@ if generate_btn:
 
         # Capital allocation bar
         fig_bar = go.Figure()
-        for a in portfolio['allocations']:
+        _bar_palette = ['#667eea','#38ef7d','#f093fb','#FFD200','#ff6b6b','#11998e','#F7971E',
+                       '#764ba2','#43e97b','#fa709a','#fee140','#30cfd0','#a18cd1']
+        for idx, a in enumerate(portfolio['allocations']):
             fig_bar.add_trace(go.Bar(
                 name=a['ticker'], x=[a['capital']], y=['Portfolio'],
-                orientation='h', text=f"{a['ticker']} ${a['capital']:,.0f}",
-                textposition='inside', textfont=dict(size=10)
+                orientation='h', text=f"  {a['ticker']} ${a['capital']:,.0f}  ",
+                textposition='inside', textfont=dict(size=10, color='white', family='JetBrains Mono'),
+                marker_color=_bar_palette[idx % len(_bar_palette)],
+                marker_line=dict(width=0)
             ))
         fig_bar.add_trace(go.Bar(
             name='Cash', x=[portfolio['cash_amt']], y=['Portfolio'],
-            orientation='h', marker_color='#555',
-            text=f"Cash ${portfolio['cash_amt']:,.0f}", textposition='inside'
+            orientation='h', marker_color='rgba(80,80,80,0.6)',
+            text=f"  Cash ${portfolio['cash_amt']:,.0f}  ", textposition='inside',
+            textfont=dict(size=10, color='rgba(200,210,220,0.8)', family='JetBrains Mono'),
+            marker_line=dict(width=0)
         ))
         fig_bar.update_layout(
-            barmode='stack', template='plotly_dark', height=120,
+            barmode='stack', template='plotly_dark', height=100,
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            showlegend=False, title='Capital Distribution',
-            xaxis=dict(title='', tickformat='$,.0f'),
-            yaxis=dict(title=''), margin=dict(l=20, r=20, t=40, b=20)
+            showlegend=False,
+            title=dict(text='<b>Capital Distribution</b>', font=dict(size=14, color='white')),
+            xaxis=dict(title='', tickformat='$,.0f', gridcolor='rgba(255,255,255,0.03)'),
+            yaxis=dict(title='', showticklabels=False),
+            margin=dict(l=10, r=20, t=40, b=20)
         )
         st.plotly_chart(fig_bar, use_container_width=True)
 
@@ -990,9 +1371,12 @@ if generate_btn:
                           "portfolio.csv", "text/csv", use_container_width=True)
 
         # --- Step 6: BACKTESTING ---
-        st.markdown("---")
-        st.markdown("### 📈 Step 6: Historical Backtest")
-        st.caption("How would this portfolio have performed over the past 12 months?")
+        st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+        st.markdown("""<div class="section-header backtest">
+            <span class="section-icon">📈</span>
+            <div><div class="section-title">Step 6: Historical Backtest</div>
+            <div class="section-subtitle">How would this portfolio have performed over the past 12 months?</div></div>
+        </div>""", unsafe_allow_html=True)
 
         with st.spinner("Running backtest on historical data..."):
             bt = run_backtest(portfolio['allocations'], capital, lookback_months=12)
@@ -1066,43 +1450,56 @@ if generate_btn:
         st.warning("⚠️ Insufficient qualified stocks for portfolio construction.")
 
     # Disclaimer
-    st.markdown("---")
-    st.caption("⚠️ **Disclaimer**: This is an AI-generated advisory for educational purposes. "
-               "Past performance does not guarantee future results. Please consult a qualified "
-               "financial advisor before making investment decisions.")
+    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+    st.markdown("""<div class="disclaimer">
+        ⚠️ <b>Disclaimer</b>: This is an AI-generated advisory for educational purposes.
+        Past performance does not guarantee future results. Please consult a qualified
+        financial advisor before making investment decisions.
+    </div>""", unsafe_allow_html=True)
 
 else:
     # Landing page when not generating
     st.markdown("""
     <div class="step-card">
         <h3>🔄 How It Works</h3>
-        <p style="color: #ccc;">Complete your investor profile in the sidebar, then click <b>Generate Portfolio</b> to run the full pipeline:</p>
+        <p style="color: rgba(200,210,220,0.9);">Complete your investor profile in the sidebar, then click <b style="color:#FFD200;">Generate Portfolio</b> to run the full AI pipeline:</p>
         <br>
-        <p><span class="workflow-step step-pending">1️⃣ Risk Profiling</span>
-        <span style="color:#555"> → </span>
+        <p style="text-align: center;">
+        <span class="workflow-step step-pending">1️⃣ Risk Profiling</span>
+        <span class="step-arrow">→</span>
         <span class="workflow-step step-pending">2️⃣ Risk Score</span>
-        <span style="color:#555"> → </span>
+        <span class="step-arrow">→</span>
         <span class="workflow-step step-pending">3️⃣ Stock Analysis</span>
-        <span style="color:#555"> → </span>
+        <span class="step-arrow">→</span>
         <span class="workflow-step step-pending">4️⃣ Allocation</span>
-        <span style="color:#555"> → </span>
-        <span class="workflow-step step-pending">5️⃣ Portfolio</span></p>
+        <span class="step-arrow">→</span>
+        <span class="workflow-step step-pending">5️⃣ Portfolio</span>
+        <span class="step-arrow">→</span>
+        <span class="workflow-step step-pending">6️⃣ Backtest</span>
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        st.markdown("""<div class="step-card">
-            <h3>🎯 Risk Prediction</h3>
-            <p style="color:#aaa;">RandomForest model trained on Federal Reserve Survey of Consumer Finances (SCF) data. Maps 19 demographic/financial features to a risk tolerance score.</p>
+        st.markdown("""<div class="module-card risk">
+            <span class="module-icon">🎯</span>
+            <h3>Risk Prediction</h3>
+            <p>RandomForest model trained on Federal Reserve Survey of Consumer Finances data. Maps 19 demographic & financial features to a risk tolerance score (0–100).</p>
+            <span class="module-stat">R² = 0.926 · MAE = 3.66</span>
         </div>""", unsafe_allow_html=True)
     with c2:
-        st.markdown("""<div class="step-card">
-            <h3>📈 Technical Analysis</h3>
-            <p style="color:#aaa;">LSTM + Multi-Head Attention ensemble (5 models) trained on S&P 500 stocks. Predicts multi-horizon returns using 15 technical indicators.</p>
+        st.markdown("""<div class="module-card tech">
+            <span class="module-icon">📈</span>
+            <h3>Technical Analysis</h3>
+            <p>LSTM + Multi-Head Attention ensemble (5 models) trained on S&P 500 stocks. Predicts multi-horizon returns using 15 technical indicators.</p>
+            <span class="module-stat">74.8% Dir Acc · r=0.329</span>
         </div>""", unsafe_allow_html=True)
     with c3:
-        st.markdown("""<div class="step-card">
-            <h3>📊 Fundamental Analysis</h3>
-            <p style="color:#aaa;">Random Forest model trained on SEC EDGAR XBRL data. Scores companies on 20 fundamental ratios (margins, growth, leverage, quality).</p>
+        st.markdown("""<div class="module-card fund">
+            <span class="module-icon">📊</span>
+            <h3>Fundamental Analysis</h3>
+            <p>Random Forest on SEC EDGAR XBRL filings. Scores companies on 20 fundamental ratios — margins, growth, leverage, and quality composites.</p>
+            <span class="module-stat">IC = 0.085 · Sharpe = 0.445</span>
         </div>""", unsafe_allow_html=True)
+
