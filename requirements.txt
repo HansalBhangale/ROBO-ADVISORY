@@ -9,3 +9,7 @@ ipykernel
 requests
 pyarrow
 fastparquet
+streamlit
+plotly
+pymongo
+python-dotenv

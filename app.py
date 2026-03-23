@@ -31,6 +31,13 @@ from datetime import datetime
 warnings.filterwarnings("ignore")
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
+# MongoDB (optional — gracefully degrades)
+try:
+    from db import MongoDB
+    _db = MongoDB()
+except Exception:
+    _db = None
+
 # ============================================================================
 # PATHS
 # ============================================================================
@@ -569,7 +576,42 @@ st.markdown("""
 # ============================================================================
 # SIDEBAR — STEP 1: RISK PROFILING QUESTIONNAIRE
 # ============================================================================
+
+user_email = ""
+user_name = ""
+
 with st.sidebar:
+    st.markdown("""<div style='text-align:center;margin-bottom:0.8rem;'>
+        <span style='font-size:1.6rem;'>🔐</span>
+        <span style='font-size:1.1rem;font-weight:800;color:white;'> User Login</span>
+    </div>""", unsafe_allow_html=True)
+
+    user_email_input = st.text_input("Email", placeholder="your@email.com", key="user_email_input")
+    user_password_input = st.text_input("Password", type="password", placeholder="••••••••", key="user_password_input")
+    user_name_input  = st.text_input("Name (for Registration)",  placeholder="Your Name",  key="user_name_input")
+
+    if st.button("🔑 Login / Register", use_container_width=True):
+        if user_email_input and user_password_input and _db and _db.is_connected():
+            user, error = _db.get_or_create_user(user_email_input, user_password_input, user_name_input)
+            if error:
+                st.error(f"❌ {error}")
+            elif user:
+                st.session_state["logged_in_email"] = user_email_input
+                st.session_state["logged_in_name"] = user.get('name', user_email_input)
+                st.success(f"Welcome, **{st.session_state['logged_in_name']}**!")
+                
+        elif not user_email_input or not user_password_input:
+            st.warning("Please enter both email and password.")
+        elif not _db or not _db.is_connected():
+            st.info("📦 MongoDB not connected — portfolios won't be saved.")
+            
+    # Persist login state
+    if "logged_in_email" in st.session_state:
+        user_email = st.session_state["logged_in_email"]
+        user_name = st.session_state["logged_in_name"]
+        st.success(f"Logged in as: {user_email}")
+
+    st.markdown("---")
     st.markdown("## 📋 Step 1: Investor Profile")
     st.markdown("---")
 
@@ -675,7 +717,11 @@ with st.sidebar:
         'AGE': age, 'AGECL': agecl, 'OCCAT1': occat1, 'OCCAT2': occat2
     }
 
-    generate_btn = st.button("🚀 Generate Portfolio", type="primary", use_container_width=True)
+    if user_email:
+        generate_btn = st.button("🚀 Generate Portfolio", type="primary", use_container_width=True)
+    else:
+        st.info("🔐 Please Login / Register above to generate a portfolio.")
+        generate_btn = False
 
 
 # ============================================================================
@@ -1127,9 +1173,19 @@ def run_backtest(allocations, capital, lookback_months=12):
 
 
 # ============================================================================
-# MAIN CONTENT — Generate on button click
+# MAIN CONTENT — TABBED NAVIGATION
 # ============================================================================
-if generate_btn:
+tab_gen, tab_models, tab_history = st.tabs([
+    "🚀 Portfolio Generator",
+    "🔧 Model Management",
+    "📜 Portfolio History"
+])
+
+# ============================================================================
+# TAB 1: PORTFOLIO GENERATOR
+# ============================================================================
+with tab_gen:
+  if generate_btn:
     # --- Step 2: Risk Score ---
     with st.container():
         st.markdown("""<div class="section-header risk">
@@ -1446,6 +1502,27 @@ if generate_btn:
         else:
             st.info("⚠️ Insufficient historical data for backtesting.")
 
+        # --- Save portfolio to MongoDB ---
+        if _db and _db.is_connected() and user_email:
+            try:
+                clean_bt = None
+                if bt:
+                    # Remove pandas Series (not serializable) before saving to DB
+                    clean_bt = {k: v for k, v in bt.items() if k not in ['port_curve', 'bench_curve']}
+
+                _db.save_portfolio(
+                    email=user_email,
+                    portfolio_data=portfolio,
+                    risk_score=risk_score,
+                    risk_category=risk_cat,
+                    capital=capital,
+                    allocations=portfolio['allocations'],
+                    backtest=clean_bt,
+                )
+                st.success("💾 Portfolio saved to your account!")
+            except Exception as e:
+                st.warning(f"⚠️ Could not save portfolio: {e}")
+
     else:
         st.warning("⚠️ Insufficient qualified stocks for portfolio construction.")
 
@@ -1457,7 +1534,7 @@ if generate_btn:
         financial advisor before making investment decisions.
     </div>""", unsafe_allow_html=True)
 
-else:
+  else:
     # Landing page when not generating
     st.markdown("""
     <div class="step-card">
@@ -1503,3 +1580,202 @@ else:
             <span class="module-stat">IC = 0.085 · Sharpe = 0.445</span>
         </div>""", unsafe_allow_html=True)
 
+# ============================================================================
+# TAB 2: MODEL MANAGEMENT
+# ============================================================================
+with tab_models:
+    st.markdown("""<div class="section-header analysis">
+        <span class="section-icon">🔧</span>
+        <div><div class="section-title">Model Management</div>
+        <div class="section-subtitle">Retrain models on live data & track versions</div></div>
+    </div>""", unsafe_allow_html=True)
+
+    col_tech, col_fund = st.columns(2)
+
+    with col_tech:
+        st.markdown('<div class="analysis-col-header tech"><span>📈 Technical Model (LSTM Ensemble)</span></div>', unsafe_allow_html=True)
+
+        tech_mode = st.radio("Retraining Mode", ["Incremental (fast ~30min)", "Full (slow ~3hr)"],
+                             key="tech_mode", horizontal=True)
+        tech_stocks = st.slider("Max Stocks", 5, 80, 30, key="tech_stocks")
+
+        if st.button("🔄 Retrain Technical Model", use_container_width=True, key="btn_retrain_tech"):
+            mode = "incremental" if "Incremental" in tech_mode else "full"
+            with st.spinner(f"Retraining technical model ({mode})..."):
+                try:
+                    from retrain import retrain_technical
+                    result = retrain_technical(mode=mode, max_stocks=tech_stocks)
+                    if "error" in result:
+                        st.error(f"❌ {result['error']}")
+                    else:
+                        st.success(f"✅ Retrained! Version: **{result['version']}**")
+                        if _db and _db.is_connected():
+                            _db.save_model_version("technical", result["version"],
+                                                   result.get("metrics", {}), result.get("path", ""))
+                except Exception as e:
+                    st.error(f"❌ Retraining failed: {e}")
+
+    with col_fund:
+        st.markdown('<div class="analysis-col-header fund"><span>📊 Fundamental Model (Random Forest)</span></div>', unsafe_allow_html=True)
+        st.info("Fundamental model always does a full retrain (~2 min). It re-downloads SEC EDGAR filings.")
+
+        if st.button("🔄 Retrain Fundamental Model", use_container_width=True, key="btn_retrain_fund"):
+            with st.spinner("Retraining fundamental model..."):
+                try:
+                    from retrain import retrain_fundamental
+                    result = retrain_fundamental()
+                    if "error" in result:
+                        st.error(f"❌ {result['error']}")
+                    else:
+                        st.success(f"✅ Retrained! Version: **{result['version']}** (IC={result.get('val_ic', 0):.4f})")
+                        if _db and _db.is_connected():
+                            _db.save_model_version("fundamental", result["version"],
+                                                   result.get("metrics", {}), result.get("path", ""))
+                except Exception as e:
+                    st.error(f"❌ Retraining failed: {e}")
+
+    # Model version history
+    st.markdown('<div class="section-divider"></div>', unsafe_allow_html=True)
+    st.markdown("#### 📦 Model Version History")
+
+    try:
+        from retrain import list_model_versions
+        versions = list_model_versions()
+        if versions:
+            vdf = pd.DataFrame([{
+                "Version": v["version"],
+                "Type": v["type"].title(),
+                "Mode": v["mode"].title(),
+                "Trained At": v["trained_at"][:19].replace("T", " ") if v["trained_at"] else "—",
+            } for v in versions])
+            st.dataframe(vdf, use_container_width=True, hide_index=True)
+        else:
+            st.info("No model versions saved yet. Retrain a model to create the first version.")
+    except Exception:
+        st.info("No model versions found. Retrain a model to get started.")
+
+    # MongoDB model versions
+    if _db and _db.is_connected():
+        st.markdown("##### ☁️ Cloud-Tracked Versions (MongoDB)")
+        db_versions = _db.get_model_versions(limit=10)
+        if db_versions:
+            dbvdf = pd.DataFrame([{
+                "Version": v.get("version", "—"),
+                "Type": v.get("model_type", "—").title(),
+                "Trained At": str(v.get("trained_at", "—"))[:19],
+            } for v in db_versions])
+            st.dataframe(dbvdf, use_container_width=True, hide_index=True)
+
+# ============================================================================
+# TAB 3: PORTFOLIO HISTORY
+# ============================================================================
+with tab_history:
+    st.markdown("""<div class="section-header portfolio">
+        <span class="section-icon">📜</span>
+        <div><div class="section-title">Portfolio History</div>
+        <div class="section-subtitle">View, compare, and rebalance your previous portfolios</div></div>
+    </div>""", unsafe_allow_html=True)
+
+    if not user_email:
+        st.info("🔑 Enter your email in the sidebar to view your portfolio history.")
+    elif not _db or not _db.is_connected():
+        st.warning("📦 MongoDB not connected. Configure your `.env` file to enable portfolio storage.")
+    else:
+        portfolios = _db.get_user_portfolios(user_email, limit=10)
+        if not portfolios:
+            st.info("No portfolios saved yet. Generate a portfolio in the **🚀 Portfolio Generator** tab.")
+        else:
+            st.markdown(f"**{len(portfolios)}** portfolio(s) found for `{user_email}`")
+
+            for idx, p in enumerate(portfolios):
+                status_emoji = {"active": "🟢", "archived": "📦", "rebalanced": "🔄"}.get(p.get("status"), "⚪")
+                created = str(p.get("created_at", ""))[:16]
+                metrics = p.get("portfolio_metrics", {})
+                ret_str = f"{metrics.get('port_ret', 0):+.1f}%" if metrics.get('port_ret') else "—"
+                sharpe_str = f"{metrics.get('sharpe', 0):.2f}" if metrics.get('sharpe') else "—"
+
+                with st.expander(f"{status_emoji} Portfolio — {created} | Return: {ret_str} | Sharpe: {sharpe_str} | Status: {p.get('status', '?').title()}"):
+                    pm1, pm2, pm3, pm4 = st.columns(4)
+                    with pm1:
+                        st.metric("Capital", f"${p.get('capital', 0):,.0f}")
+                    with pm2:
+                        st.metric("Risk Score", f"{p.get('risk_score', 0):.1f}")
+                    with pm3:
+                        st.metric("Equity %", f"{metrics.get('eq_pct', 0):.0f}%")
+                    with pm4:
+                        st.metric("Status", p.get("status", "—").title())
+
+                    allocs = p.get("allocations", [])
+                    if allocs:
+                        adf = pd.DataFrame([{
+                            "Ticker": a["ticker"],
+                            "Name": a.get("name", ""),
+                            "Weight": f"{a.get('weight_pct', 0):.1f}%",
+                            "Capital": f"${a.get('capital', 0):,.0f}",
+                            "Shares": a.get("shares", 0),
+                            "Entry Price": f"${a.get('entry_price', 0):,.2f}",
+                            "Signal": a.get("signal", "—"),
+                        } for a in allocs])
+                        st.dataframe(adf, use_container_width=True, hide_index=True)
+
+                    bt = p.get("backtest")
+                    if bt:
+                        st.caption(f"Backtest: Return {bt.get('total_return', 0):+.1f}% | Alpha {bt.get('alpha', 0):+.1f}% | Sharpe {bt.get('sharpe', 0):.2f}")
+
+                    if p.get("status") == "active":
+                        st.markdown("---")
+                        if st.button(f"🔄 Analyze & Rebalance", key=f"reb_{p['_id']}", use_container_width=True):
+                            st.info(f"Rebalancing portfolio from {created}.")
+                            
+                            # Real Rebalancing Logic
+                            with st.spinner("1️⃣ Running Technical Analysis..."):
+                                tech_res = run_technical_analysis(st.progress(0), st.empty(), horizon_days=90)
+                            with st.spinner("2️⃣ Running Fundamental Analysis..."):
+                                fund_res = run_fundamental_analysis(st.progress(0), st.empty())
+                            with st.spinner("3️⃣ Calculating Optimal Weights..."):
+                                combined = combine_scores(tech_res, fund_res)
+                                new_port = allocate_portfolio(combined, p.get("risk_score", 50), p.get("capital", 100000))
+                            
+                            if not new_port['allocations']:
+                                st.warning("Not enough qualified stocks to rebalance right now.")
+                            else:
+                                st.markdown("#### ⚖️ Proposed Rebalancing Trades")
+                                
+                                old_allocs = {a['ticker']: a for a in allocs}
+                                new_allocs = {a['ticker']: a for a in new_port['allocations']}
+                                
+                                all_tickers = set(old_allocs.keys()).union(set(new_allocs.keys()))
+                                reb_data = []
+                                
+                                for t in all_tickers:
+                                    old_w = old_allocs.get(t, {}).get("weight_pct", 0.0)
+                                    new_w = new_allocs.get(t, {}).get("weight_pct", 0.0)
+                                    
+                                    if new_w > old_w + 1.0:
+                                        action = "BUY"
+                                    elif new_w < old_w - 1.0:
+                                        action = "SELL"
+                                    else:
+                                        action = "HOLD"
+                                        
+                                    if action != "HOLD" or old_w > 0:
+                                        reb_data.append({
+                                            "Ticker": t,
+                                            "Current Weight": f"{old_w:.1f}%",
+                                            "Target Weight": f"{new_w:.1f}%",
+                                            "Target Capital": f"${new_allocs.get(t, {}).get('capital', 0):,.0f}",
+                                            "Action": action
+                                        })
+                                
+                                r_df = pd.DataFrame(reb_data).sort_values("Action")
+                                st.dataframe(r_df, use_container_width=True, hide_index=True)
+                                
+                                if st.button("Confirm Rebalance & Update Portfolio", key=f"conf_{p['_id']}"):
+                                    if _db and _db.is_connected():
+                                        _db.update_portfolio_in_place(
+                                            portfolio_id=str(p["_id"]),
+                                            portfolio_data=new_port,
+                                            allocations=new_port['allocations'],
+                                            backtest=None
+                                        )
+                                        st.success("✅ Portfolio successfully rebalanced and updated! Reload the page to see changes.")
